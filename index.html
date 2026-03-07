@@ -351,5 +351,33 @@
     document.getElementById('ios-hint').classList.add('show');
   }
 </script>
+
+<script src="offline-queue.js"></script>
+<script>
+  // Na tela inicial: verifica pendentes ao abrir
+  document.addEventListener('DOMContentLoaded', async () => {
+    const total = await contarPendentes();
+    if (total > 0) {
+      // Insere banner abaixo dos cards
+      const wrap = document.querySelector('.cards');
+      const banner = document.createElement('div');
+      banner.style.cssText = [
+        'margin-top:1rem',
+        'background:rgba(239,68,68,0.1)',
+        'border:1px solid rgba(239,68,68,0.35)',
+        'border-radius:12px',
+        'padding:.9rem 1.1rem',
+        'display:flex','align-items:center','gap:.75rem',
+        'animation:fadeUp .4s ease both'
+      ].join(';');
+      banner.innerHTML =
+        '<span style="flex:1;font-size:.78rem;color:#e2e8f0;line-height:1.5">' +
+        '⚠️ <strong style="color:#e8b834">' + total + ' registro' + (total>1?'s':'') + ' pendente' + (total>1?'s':'') + '</strong>' +
+        ' — abra o checklist correspondente com internet ativa e toque em <strong style="color:#e8b834">Reenviar</strong>.</span>';
+      if (wrap) wrap.after(banner);
+    }
+  });
+</script>
+
 </body>
 </html>

@@ -1,4 +1,4 @@
-const CACHE = 'cipgd-v2';
+const CACHE = 'cipgd-v1.1'; // Atualizações: v1.1, v1.2, v2.0...
 const ASSETS = [
   './index.html',
   './checklist-4rodas.html',
