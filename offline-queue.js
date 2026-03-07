@@ -213,8 +213,11 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// ── Ao voltar online: tenta reenviar automaticamente ──
+// ── Ao voltar online: reenvio apenas se Background Sync NÃO estiver disponível (iOS) ──
 window.addEventListener('online', async () => {
+  const temBackgroundSync = 'serviceWorker' in navigator && 'SyncManager' in window;
+  if (temBackgroundSync) return; // Android/Chrome: o SW cuida do reenvio, evita duplicar
+
   const total = await contarPendentes();
   if (total > 0) {
     showToast('🔄 Internet restaurada! Reenviando ' + total + ' registro(s)...', 3000);
