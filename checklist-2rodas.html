@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#e8b834">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <title>Checklist 2 Rodas — CIPGd-FSA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:     #0a0f1e;
+      --panel:    #161d30;
+      --border:   #1f2d47;
+      --accent:   #e8b834;
+      --accent2:  #f5c842;
+      --green:    #22c55e;
+      --red:      #ef4444;
+      --text:     #e2e8f0;
+      --muted:    #6b7a99;
+      --input-bg: #0d1424;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--navy); color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100dvh; overscroll-behavior: none;
+    }
+    body { padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 1rem); }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(232,184,52,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,184,52,0.04) 1px, transparent 1px);
+      background-size: 40px 40px; pointer-events: none; z-index: 0;
+    }
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,15,30,.92);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: .75rem;
+      padding: .75rem 1rem;
+      padding-top: calc(.75rem + env(safe-area-inset-top, 0px));
+    }
+    .btn-back {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px;
+      background: rgba(232,184,52,.1); border: 1px solid rgba(232,184,52,.2);
+      border-radius: 9px; color: var(--accent);
+      text-decoration: none; font-size: 1.1rem;
+      transition: background .2s; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+    }
+    .btn-back:hover { background: rgba(232,184,52,.2); }
+    .topbar-title { flex: 1; }
+    .topbar-badge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .62rem; font-weight: 700;
+      letter-spacing: .15em; text-transform: uppercase; color: var(--accent);
+    }
+    .topbar-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.1rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .04em; color: #fff; line-height: 1.1;
+    }
+    .container {
+      max-width: 640px; margin: 0 auto;
+      padding: 1.25rem 1rem 2rem; position: relative; z-index: 1;
+    }
+    .section {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 14px; margin-bottom: 1.1rem; overflow: hidden;
+      animation: fadeUp .35s ease both;
+    }
+    .section:nth-child(1) { animation-delay: .05s; }
+    .section:nth-child(2) { animation-delay: .10s; }
+    .section:nth-child(3) { animation-delay: .15s; }
+    .section:nth-child(4) { animation-delay: .20s; }
+    .section:nth-child(5) { animation-delay: .25s; }
+    .sec-header {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .85rem 1.1rem; border-bottom: 1px solid var(--border);
+      background: rgba(232,184,52,.06);
+    }
+    .sec-icon {
+      font-size: .95rem; width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(232,184,52,.15); border-radius: 6px;
+    }
+    .sec-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .78rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
+    }
+    .sec-body { padding: 1.1rem; display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
+    .sec-body.single { grid-template-columns: 1fr; }
+    .field { display: flex; flex-direction: column; gap: .3rem; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: .69rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    input, select, textarea {
+      background: var(--input-bg); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif;
+      font-size: .92rem; padding: .6rem .8rem;
+      transition: border-color .2s, box-shadow .2s;
+      -webkit-appearance: none; appearance: none; width: 100%;
+    }
+    input:read-only { color: var(--accent); font-size: .82rem; }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(232,184,52,.11);
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7a99' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right .75rem center;
+      padding-right: 2.2rem; cursor: pointer;
+    }
+    textarea { resize: vertical; min-height: 88px; line-height: 1.5; }
+    select.status-ok  { border-color: rgba(34,197,94,.5);  color: var(--green); }
+    select.status-bad { border-color: rgba(239,68,68,.5);  color: var(--red);   }
+    .check-grid { padding: 1.1rem; display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+    .check-item { display: flex; flex-direction: column; gap: .3rem; }
+    .obs-chips { display: none; flex-wrap: wrap; gap: .35rem; margin-top: .4rem; }
+    .obs-chips.show { display: flex; }
+    .chip-label { font-size: .65rem; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; align-self: center; white-space: nowrap; }
+    .chip {
+      display: inline-block; padding: .2rem .6rem;
+      background: rgba(232,184,52,.1); border: 1px solid rgba(232,184,52,.28);
+      border-radius: 20px; font-size: .71rem; color: var(--accent); cursor: pointer;
+      transition: background .15s; max-width: 180px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .chip:hover { background: rgba(232,184,52,.22); }
+    .submit-wrap { margin-top: 1.25rem; animation: fadeUp .4s .3s ease both; }
+    .btn-submit {
+      width: 100%; background: var(--accent); color: var(--navy);
+      border: none; border-radius: 12px; padding: 1rem 1.5rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.05rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+      cursor: pointer; transition: background .2s, transform .1s, box-shadow .2s;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-submit:hover { background: var(--accent2); box-shadow: 0 0 22px rgba(232,184,52,.28); }
+    .btn-submit:active { transform: scale(.98); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    @media (max-width: 480px) { .sec-body, .check-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="btn-back" href="index.html">&#8249;</a>
+  <div class="topbar-title">
+    <div class="topbar-badge">2 Rodas</div>
+    <div class="topbar-name">Viatura Motocicleta</div>
+  </div>
+  <span style="font-size:1.5rem">🏍️</span>
+</div>
+
+<div class="container">
+<form id="checklistForm">
+
+  <!-- Identificação -->
+  <div class="section">
+    <div class="sec-header">
+      <div class="sec-icon">📋</div>
+      <span class="sec-title">Identificação</span>
+    </div>
+    <div class="sec-body">
+      <div class="field full">
+        <label>Data e Hora</label>
+        <input type="text" id="DataHora" readonly>
+      </div>
+      <div class="field">
+        <label>Nome</label>
+        <input type="text" id="Nome" placeholder="Nome completo" required autocomplete="off" list="list-Nome">
+        <datalist id="list-Nome"></datalist>
+      </div>
+      <div class="field">
+        <label>Graduação</label>
+        <select id="Graduacao" required>
+          <option value="">Selecione</option>
+          <option>SD</option><option>CB</option><option>SGT</option><option>ST</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Cadastro</label>
+        <input type="text" id="Cadastro" placeholder="Nº do cadastro" required autocomplete="off" list="list-Cadastro">
+        <datalist id="list-Cadastro"></datalist>
+      </div>
+      <div class="field">
+        <label>Comandante</label>
+        <input type="text" id="Comandante" placeholder="Nome do comandante" required autocomplete="off" list="list-Comandante">
+        <datalist id="list-Comandante"></datalist>
+      </div>
+    </div>
+  </div>
+
+  <!-- Viatura -->
+  <div class="section">
+    <div class="sec-header">
+      <div class="sec-icon">🏍️</div>
+      <span class="sec-title">Viatura</span>
+    </div>
+    <div class="sec-body">
+      <div class="field">
+        <label>Prefixo</label>
+        <select id="Prefixo" required>
+          <option value="">Selecione</option>
+          <option>VTR-Atalaia 10(MOTO)</option>
+          <option>VTR-Atalaia 11(MOTO)</option>
+          <option>VTR-RESERVA(MOTO)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Km Inicial</label>
+        <input type="number" id="KmInicial" placeholder="00000" required>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fluidos -->
+  <div class="section">
+    <div class="sec-header">
+      <div class="sec-icon">🛢️</div>
+      <span class="sec-title">Níveis e Fluidos</span>
+    </div>
+    <div class="check-grid">
+      <div class="check-item">
+        <label>Nível do Óleo</label>
+        <select id="NivelOleo" class="status-select" required>
+          <option value="">—</option>
+          <option value="OK">✔ OK</option>
+          <option value="Baixo">✘ Baixo</option>
+        </select>
+      </div>
+      <div class="check-item">
+        <label>Vazamento de Óleo</label>
+        <select id="VazamentoOleo" class="status-select" required>
+          <option value="">—</option>
+          <option value="Sem Vazamento">✔ Sem Vazamento</option>
+          <option value="Com Vazamento">✘ Com Vazamento</option>
+        </select>
+      </div>
+      <div class="check-item">
+        <label>Combustível</label>
+        <select id="NivelCombustivel" class="status-select" required>
+          <option value="">—</option>
+          <option value="1/4">1/4</option>
+          <option value="2/4">2/4</option>
+          <option value="3/4">3/4</option>
+          <option value="Cheio">Cheio</option>
+        </select>
+      </div>
+      <div class="check-item">
+        <label>Fluido de Freio</label>
+        <select id="FluidoFreio" class="status-select" required>
+          <option value="">—</option>
+          <option value="OK">✔ OK</option>
+          <option value="Baixo">✘ Baixo</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estrutura -->
+  <div class="section">
+    <div class="sec-header">
+      <div class="sec-icon">🔧</div>
+      <span class="sec-title">Estrutura e Equipamentos</span>
+    </div>
+    <div class="check-grid">
+      <div class="check-item">
+        <label>Pintura / Plotagem</label>
+        <select id="PinturaPlotagem" class="status-select" required>
+          <option value="">—</option>
+          <option value="OK">✔ OK</option>
+          <option value="Danificada">✘ Danificada</option>
+        </select>
+      </div>
+      <div class="check-item">
+        <label>Faróis e Setas</label>
+        <select id="FaroisSetas" class="status-select" required>
+          <option value="">—</option>
+          <option value="OK">✔ OK</option>
+          <option value="Defeito">✘ Defeito</option>
+        </select>
+      </div>
+      <div class="check-item">
+        <label>Giroflex</label>
+        <select id="Giroflex" class="status-select" required>
+          <option value="">—</option>
+          <option value="OK">✔ OK</option>
+          <option value="Defeito">✘ Defeito</option>
+        </select>
+      </div>
+      <div class="check-item">
+        <label>Estofados</label>
+        <select id="Estofados" class="status-select" required>
+          <option value="">—</option>
+          <option value="OK">✔ OK</option>
+          <option value="Danificado">✘ Danificado</option>
+        </select>
+      </div>
+      <div class="check-item">
+        <label>Jante</label>
+        <select id="Jante" class="status-select" required>
+          <option value="">—</option>
+          <option value="OK">✔ OK</option>
+          <option value="Danificada">✘ Danificada</option>
+        </select>
+      </div>
+      <div class="check-item">
+        <label>Pneus</label>
+        <select id="Pneus" class="status-select" required>
+          <option value="">—</option>
+          <option value="OK">✔ OK</option>
+          <option value="Desgastado">✘ Desgastado</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Observações -->
+  <div class="section">
+    <div class="sec-header">
+      <div class="sec-icon">📝</div>
+      <span class="sec-title">Observações</span>
+    </div>
+    <div class="sec-body single">
+      <div class="field full">
+        <textarea id="Observacoes" placeholder="Registre aqui qualquer ocorrência ou detalhe relevante..."></textarea>
+        <div class="obs-chips" id="obs-chips"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="submit-wrap">
+    <button id="whatsBtn" type="submit" class="btn-submit">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Enviar via WhatsApp
+    </button>
+  </div>
+
+</form>
+</div>
+
+<script>
+  document.getElementById('DataHora').value = new Date().toLocaleString('pt-BR');
+  var isIphone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  var STORE_KEY = 'cipgd_2rodas_v1';
+  function loadStore() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e) { return {}; } }
+  function saveStore(s) { try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch(e) {} }
+  function addToList(store, key, val) {
+    val = (val || '').trim(); if (!val) return;
+    if (!store[key]) store[key] = [];
+    var i = store[key].indexOf(val); if (i > -1) store[key].splice(i, 1);
+    store[key].unshift(val);
+    if (store[key].length > 10) store[key] = store[key].slice(0, 10);
+  }
+  function fillDatalist(id, items) {
+    var dl = document.getElementById('list-' + id); if (!dl || !items) return;
+    dl.innerHTML = '';
+    items.forEach(function(v) { var o = document.createElement('option'); o.value = v; dl.appendChild(o); });
+  }
+  function restoreField(id, val) { var el = document.getElementById(id); if (el && val) el.value = val; }
+  function renderChips(store) {
+    var wrap = document.getElementById('obs-chips');
+    var list = store['Observacoes'] || [];
+    if (!list.length) { wrap.classList.remove('show'); return; }
+    wrap.classList.add('show');
+    wrap.innerHTML = '<span class="chip-label">Recentes:</span>';
+    list.slice(0, 5).forEach(function(v) {
+      var c = document.createElement('span'); c.className = 'chip';
+      c.textContent = v; c.title = v;
+      c.addEventListener('click', function() { document.getElementById('Observacoes').value = v; });
+      wrap.appendChild(c);
+    });
+  }
+
+  (function init() {
+    var s = loadStore();
+    ['Nome','Cadastro','Comandante'].forEach(function(id) { fillDatalist(id, s[id]); restoreField(id, s[id] && s[id][0]); });
+    if (s.Graduacao) restoreField('Graduacao', s.Graduacao);
+    if (s.Prefixo)   restoreField('Prefixo', s.Prefixo);
+    renderChips(s);
+  })();
+
+  document.querySelectorAll('.status-select').forEach(function(sel) {
+    sel.addEventListener('change', function() {
+      var v = this.value; this.className = 'status-select';
+      if (['OK','Sem Vazamento','Cheio','3/4','2/4'].indexOf(v) >= 0) this.classList.add('status-ok');
+      else if (v) this.classList.add('status-bad');
+    });
+  });
+
+  document.getElementById('checklistForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var dados = {};
+    for (var i = 0; i < e.target.elements.length; i++) {
+      var el = e.target.elements[i]; if (el.id) dados[el.id] = el.value;
+    }
+
+    var s = loadStore();
+    ['Nome','Cadastro','Comandante','Observacoes'].forEach(function(k) { addToList(s, k, dados[k]); });
+    s.Graduacao = dados.Graduacao; s.Prefixo = dados.Prefixo;
+    saveStore(s);
+
+    var formData = new FormData();
+    for (var campo in dados) formData.append(campo, dados[campo]);
+    fetch('https://script.google.com/macros/s/AKfycbwJRY1wLA5_KLa2yPh2rh66d5mV_5kqlD5YwxsEywgeJQOuFhqnWDolvmmvfNWVs_rn/exec', {
+      method: 'POST', body: formData
+    })
+    .then(function(r) { return r.text(); })
+    .then(function() { alert('✅ Checklist registrado na planilha com sucesso!'); })
+    .catch(function(err) { alert('⚠️ Erro ao enviar para planilha: ' + err); });
+
+    function st(v) {
+      return ['OK','Sem Vazamento','Cheio','3/4','2/4'].indexOf(v) >= 0 ? '✅ ' + v : '❌ ' + v;
+    }
+    var SEP = '━━━━━━━━━━━━━━━━━━━━';
+    var L = [];
+    L.push(SEP);
+    L.push('🏍️ *CHECKLIST 2 RODAS*');
+    L.push('       *CIPGd-FSA*');
+    L.push(SEP); L.push('');
+    L.push('📅 ' + dados.DataHora);
+    L.push('👤 Mot: ' + dados.Graduacao + ' *' + dados.Nome.trim() + '*' + (dados.Cadastro ? '  Mat: *' + dados.Cadastro.trim() + '*' : ''));
+    L.push('🧑‍✈️ Cmt: ' + dados.Comandante);
+    L.push('📍 Viatura: *' + dados.Prefixo + '*');
+    L.push('📊 Km Inicial: ' + dados.KmInicial); L.push('');
+    L.push('┌─ 🛢️ *FLUIDOS*');
+    L.push('├ Óleo: ' + st(dados.NivelOleo));
+    L.push('├ Vazamento: ' + st(dados.VazamentoOleo));
+    L.push('├ Combustível: ' + st(dados.NivelCombustivel));
+    L.push('└ Freio: ' + st(dados.FluidoFreio)); L.push('');
+    L.push('┌─ 🔧 *ESTRUTURA*');
+    L.push('├ Pintura/Plot.: ' + st(dados.PinturaPlotagem));
+    L.push('├ Faróis e Setas: ' + st(dados.FaroisSetas));
+    L.push('├ Giroflex: ' + st(dados.Giroflex));
+    L.push('├ Estofados: ' + st(dados.Estofados));
+    L.push('├ Jante: ' + st(dados.Jante));
+    L.push('└ Pneus: ' + st(dados.Pneus));
+    if (dados.Observacoes && dados.Observacoes.trim()) {
+      L.push(''); L.push('📝 *OBS:*');
+      dados.Observacoes.trim().split('\n').forEach(function(l) { if (l.trim()) L.push('. ' + l.trim()); });
+    }
+    L.push(''); L.push(SEP);
+    var url = 'https://wa.me/?text=' + encodeURIComponent(L.join('\n'));
+    if (isIphone) window.location.href = url;
+    else window.open(url, '_blank');
+  });
+</script>
+</body>
+</html>
