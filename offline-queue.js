@@ -81,12 +81,10 @@ async function renderBannerPendentes() {
     banner = document.createElement('div');
     banner.id = '_banner_pendentes';
     banner.style.cssText = [
-      'position:sticky','top:0','z-index:200',
       'background:rgba(239,68,68,0.12)',
       'border-bottom:1px solid rgba(239,68,68,0.4)',
       'padding:.6rem 1rem',
-      'display:flex','align-items:center','gap:.75rem',
-      'animation:fadeDown .3s ease both'
+      'display:flex','align-items:center','gap:.75rem'
     ].join(';');
 
     const txt = document.createElement('span');
@@ -111,12 +109,18 @@ async function renderBannerPendentes() {
     banner.appendChild(txt);
     banner.appendChild(btn);
 
-    // Inserir logo após a topbar (ou no topo do body)
-    const topbar = document.querySelector('.topbar');
-    if (topbar && topbar.nextSibling) {
-      topbar.parentNode.insertBefore(banner, topbar.nextSibling);
+    // Inserir SEMPRE dentro do .container, antes do primeiro filho
+    // Assim fica abaixo da topbar e respeita o layout da página
+    const container = document.querySelector('.container');
+    if (container) {
+      container.insertBefore(banner, container.firstChild);
     } else {
-      document.body.prepend(banner);
+      const topbar = document.querySelector('.topbar');
+      if (topbar && topbar.nextSibling) {
+        topbar.parentNode.insertBefore(banner, topbar.nextSibling);
+      } else {
+        document.body.prepend(banner);
+      }
     }
   }
 
