@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#e8b834">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.json">
   <title>Checklist 4 Rodas — CIPGd-FSA</title>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -21,7 +22,9 @@
       --text:     #e2e8f0;
       --muted:    #6b7a99;
       --input-bg: #0d1424;
-    }
+    
+    --topbar: rgba(10,15,30,0.92);
+  }
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
@@ -232,6 +235,7 @@
       .sec-body, .check-grid { grid-template-columns: 1fr; }
     }
   </style>
+  <script src="theme.js"></script>
 </head>
 <body>
 
@@ -429,7 +433,7 @@
     </div>
     <div class="sec-body single">
       <div class="field full">
-        <textarea id="Observacoes" placeholder="Registre aqui qualquer ocorrência ou detalhe relevante..." required></textarea>
+        <textarea id="Observacoes" placeholder="Registre aqui qualquer ocorrência ou detalhe relevante... (opcional)"></textarea>
         <div class="obs-chips" id="obs-chips"></div>
       </div>
     </div>
@@ -500,12 +504,70 @@
     });
   });
 
+  // ── VALIDAÇÃO ──────────────────────────────────────────────────────────────
+  function mostrarErro(id, msg) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.style.outline = '2px solid #ef4444';
+    el.style.boxShadow = '0 0 0 3px rgba(239,68,68,.25)';
+    var err = document.getElementById('err_' + id);
+    if (!err) {
+      err = document.createElement('span');
+      err.id = 'err_' + id;
+      err.style.cssText = 'color:#ef4444;font-size:.72rem;margin-top:.2rem;display:block;';
+      el.parentNode.appendChild(err);
+    }
+    err.textContent = msg;
+    el.addEventListener('input', function limpar() {
+      el.style.outline = '';
+      el.style.boxShadow = '';
+      if (err) err.textContent = '';
+      el.removeEventListener('input', limpar);
+    }, { once: true });
+    el.addEventListener('change', function limpar() {
+      el.style.outline = '';
+      el.style.boxShadow = '';
+      if (err) err.textContent = '';
+      el.removeEventListener('change', limpar);
+    }, { once: true });
+  }
+
+  function validarFormulario(dados) {
+    var erros = [];
+    // Campos obrigatórios de texto
+    if (!dados.Nome || !dados.Nome.trim()) { mostrarErro('Nome', 'Informe o nome do militar'); erros.push('Nome'); }
+    if (!dados.Graduacao) { mostrarErro('Graduacao', 'Selecione a graduação'); erros.push('Graduacao'); }
+    if (!dados.Cadastro || !dados.Cadastro.trim()) { mostrarErro('Cadastro', 'Informe o nº do cadastro'); erros.push('Cadastro'); }
+    if (!dados.Comandante || !dados.Comandante.trim()) { mostrarErro('Comandante', 'Informe o nome do comandante'); erros.push('Comandante'); }
+    if (!dados.Prefixo) { mostrarErro('Prefixo', 'Selecione a viatura'); erros.push('Prefixo'); }
+    // Km
+    var km = parseInt(dados.Km_inicial);
+    if (!dados.Km_inicial || isNaN(km) || km <= 0) {
+      mostrarErro('Km_inicial', 'Informe o Km inicial (maior que zero)'); erros.push('Km');
+    } else if (km > 999999) {
+      mostrarErro('Km_inicial', 'Km parece inválido. Verifique o valor.'); erros.push('Km');
+    }
+    // Status selects — todos devem estar preenchidos
+    ['Oleo','Agua','Combustivel','Freio','Chaparia','Plotagem','Farois','Giroflex','Estofados','Ferramentas','Pneus'].forEach(function(id) {
+      if (!dados[id]) { mostrarErro(id, 'Selecione o status'); erros.push(id); }
+    });
+    return erros;
+  }
+
   // SUBMIT
   document.getElementById('checklistForm').addEventListener('submit', function(e) {
     e.preventDefault();
     var dados = {};
     for (var i = 0; i < e.target.elements.length; i++) {
       var el = e.target.elements[i]; if (el.id) dados[el.id] = el.value;
+    }
+
+    // Validação
+    var erros = validarFormulario(dados);
+    if (erros.length > 0) {
+      var primeiro = document.getElementById(erros[0]);
+      if (primeiro) primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
     }
 
     // Salva localStorage

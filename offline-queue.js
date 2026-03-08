@@ -1,11 +1,11 @@
-// ── FILA OFFLINE com IndexedDB + Background Sync ──
+// ── FILA OFFLINE — CIPGd-FSA v1.4 ──────────────────────────────────────────
 
 const QUEUES = {
   'cipgd_4rodas_queue': 'https://script.google.com/macros/s/AKfycbw5AkFln4F18me-S32jrq6AJVamCzoz_JVDvQwYJFbkIRjgmRDWrLkUcOea0bQjOjdv/exec',
   'cipgd_2rodas_queue': 'https://script.google.com/macros/s/AKfycbwJRY1wLA5_KLa2yPh2rh66d5mV_5kqlD5YwxsEywgeJQOuFhqnWDolvmmvfNWVs_rn/exec'
 };
 
-// ── IndexedDB helpers ──
+// ── IndexedDB helpers ────────────────────────────────────────────────────────
 function idbOpen() {
   return new Promise((res, rej) => {
     const req = indexedDB.open('cipgd_sw', 1);
@@ -32,7 +32,7 @@ async function idbSet(key, val) {
   });
 }
 
-// ── Conta total de pendentes nas duas filas ──
+// ── Conta pendentes ──────────────────────────────────────────────────────────
 async function contarPendentes() {
   let total = 0;
   for (const key of Object.keys(QUEUES)) {
@@ -42,7 +42,46 @@ async function contarPendentes() {
   return total;
 }
 
-// ── Toast ──
+// ── Indicador de conexão (🟢 / 🔴) ─────────────────────────────────────────
+function atualizarIndicadorConexao() {
+  let el = document.getElementById('_net_status');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = '_net_status';
+    el.style.cssText = [
+      'position:fixed',
+      'top:calc(0.5rem + env(safe-area-inset-top,0px))',
+      'right:0.75rem',
+      'font-size:0.68rem',
+      'font-family:\'Barlow Condensed\',sans-serif',
+      'font-weight:700',
+      'letter-spacing:0.06em',
+      'padding:0.2rem 0.55rem',
+      'border-radius:6px',
+      'background:rgba(10,15,30,0.85)',
+      'border:1px solid rgba(232,184,52,0.25)',
+      'color:#e2e8f0',
+      'z-index:9999',
+      'pointer-events:none',
+      'transition:opacity 0.3s'
+    ].join(';');
+    document.body.appendChild(el);
+  }
+  if (navigator.onLine) {
+    el.textContent = '🟢 Online';
+    el.style.borderColor = 'rgba(34,197,94,0.4)';
+    // Some após 3s quando online para não poluir a tela
+    clearTimeout(el._hide);
+    el._hide = setTimeout(() => { el.style.opacity = '0'; }, 3000);
+  } else {
+    el.style.opacity = '1';
+    el.textContent = '🔴 Offline';
+    el.style.borderColor = 'rgba(239,68,68,0.4)';
+    clearTimeout(el._hide);
+  }
+}
+
+// ── Toast ────────────────────────────────────────────────────────────────────
 function showToast(msg, duration) {
   let t = document.getElementById('_toast');
   if (!t) {
@@ -51,23 +90,30 @@ function showToast(msg, duration) {
     t.style.cssText = [
       'position:fixed',
       'bottom:calc(1.5rem + env(safe-area-inset-bottom,0px))',
-      'left:50%','transform:translateX(-50%)',
-      'background:#161d30','border:1px solid rgba(232,184,52,.45)',
-      'color:#e2e8f0','padding:.65rem 1.2rem','border-radius:10px',
-      'font-size:.82rem','z-index:9999',
+      'left:50%',
+      'transform:translateX(-50%)',
+      'background:#161d30',
+      'border:1px solid rgba(232,184,52,.45)',
+      'color:#e2e8f0',
+      'padding:.65rem 1.2rem',
+      'border-radius:10px',
+      'font-size:.82rem',
+      'z-index:9999',
       'box-shadow:0 4px 20px rgba(0,0,0,.45)',
-      'max-width:90vw','text-align:center',
-      'transition:opacity .4s','pointer-events:none'
+      'max-width:90vw',
+      'text-align:center',
+      'transition:opacity .4s',
+      'pointer-events:none'
     ].join(';');
     document.body.appendChild(t);
   }
   t.textContent = msg;
   t.style.opacity = '1';
   clearTimeout(t._t);
-  t._t = setTimeout(() => t.style.opacity = '0', duration || 4000);
+  t._t = setTimeout(() => { t.style.opacity = '0'; }, duration || 4000);
 }
 
-// ── Banner de pendentes (aparece no topo, com botão reenviar) ──
+// ── Banner de pendentes ──────────────────────────────────────────────────────
 async function renderBannerPendentes() {
   const total = await contarPendentes();
   let banner = document.getElementById('_banner_pendentes');
@@ -84,7 +130,9 @@ async function renderBannerPendentes() {
       'background:rgba(239,68,68,0.12)',
       'border-bottom:1px solid rgba(239,68,68,0.4)',
       'padding:.6rem 1rem',
-      'display:flex','align-items:center','gap:.75rem'
+      'display:flex',
+      'align-items:center',
+      'gap:.75rem'
     ].join(';');
 
     const txt = document.createElement('span');
@@ -109,8 +157,7 @@ async function renderBannerPendentes() {
     banner.appendChild(txt);
     banner.appendChild(btn);
 
-    // Inserir SEMPRE dentro do .container, antes do primeiro filho
-    // Assim fica abaixo da topbar e respeita o layout da página
+    // Inserir dentro do .container (abaixo da topbar)
     const container = document.querySelector('.container');
     if (container) {
       container.insertBefore(banner, container.firstChild);
@@ -124,11 +171,14 @@ async function renderBannerPendentes() {
     }
   }
 
-  const txt = document.getElementById('_banner_txt');
-  txt.innerHTML = '⚠️ <strong style="color:#e8b834">' + total + ' registro' + (total > 1 ? 's' : '') + ' pendente' + (total > 1 ? 's' : '') + '</strong> — não enviado' + (total > 1 ? 's' : '') + ' à planilha. Toque em Reenviar com internet ativa.';
+  const s = total > 1;
+  document.getElementById('_banner_txt').innerHTML =
+    '⚠️ <strong style="color:#e8b834">' + total + ' registro' + (s?'s':'') +
+    ' pendente' + (s?'s':'') + '</strong> — não enviado' + (s?'s':'') +
+    ' à planilha. Toque em <strong style="color:#e8b834">Reenviar</strong> com internet ativa.';
 }
 
-// ── Reenvio manual (funciona no iPhone) ──
+// ── Reenvio manual ───────────────────────────────────────────────────────────
 async function reenviarPendentes() {
   if (!navigator.onLine) {
     showToast('📶 Sem conexão. Conecte-se à internet e tente novamente.');
@@ -138,8 +188,7 @@ async function reenviarPendentes() {
   const btn = document.getElementById('_btn_reenviar');
   if (btn) { btn.textContent = 'Enviando...'; btn.disabled = true; }
 
-  let enviados = 0;
-  let falhas = 0;
+  let enviados = 0, falhas = 0;
 
   for (const [queueKey, sheetUrl] of Object.entries(QUEUES)) {
     const queue = await idbGet(queueKey) || [];
@@ -162,8 +211,9 @@ async function reenviarPendentes() {
 
   if (btn) { btn.textContent = 'Reenviar'; btn.disabled = false; }
 
+  const s = enviados > 1;
   if (enviados > 0 && falhas === 0) {
-    showToast('✅ ' + enviados + ' registro' + (enviados > 1 ? 's' : '') + ' enviado' + (enviados > 1 ? 's' : '') + ' com sucesso!', 5000);
+    showToast('✅ ' + enviados + ' registro' + (s?'s':'') + ' enviado' + (s?'s':'') + ' com sucesso!', 5000);
   } else if (falhas > 0) {
     showToast('⚠️ ' + enviados + ' enviado(s), ' + falhas + ' falhou. Tente novamente.', 5000);
   }
@@ -171,18 +221,14 @@ async function reenviarPendentes() {
   await renderBannerPendentes();
 }
 
-// ── Envio principal: tenta direto ou enfileira ──
+// ── Envio principal ──────────────────────────────────────────────────────────
 async function enviarOuEnfileirar(dados, queueKey, sheetUrl) {
-  async function tryFetch(payload) {
-    const fd = new FormData();
-    for (const k in payload) fd.append(k, payload[k]);
-    const r = await fetch(sheetUrl, { method: 'POST', body: fd });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-  }
-
   if (navigator.onLine) {
     try {
-      await tryFetch(dados);
+      const fd = new FormData();
+      for (const k in dados) fd.append(k, dados[k]);
+      const r = await fetch(sheetUrl, { method: 'POST', body: fd });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
       showToast('✅ Registrado na planilha com sucesso!');
       return;
     } catch (e) { /* cai para enfileirar */ }
@@ -193,7 +239,7 @@ async function enviarOuEnfileirar(dados, queueKey, sheetUrl) {
   await idbSet(queueKey, queue);
   showToast('📶 Sem conexão — salvo localmente. Abra o app com internet e toque em Reenviar.');
 
-  // Background Sync para Android/Chrome
+  // Background Sync (Android/Chrome)
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     const reg = await navigator.serviceWorker.ready;
     await reg.sync.register('sync-checklists').catch(() => {});
@@ -202,12 +248,47 @@ async function enviarOuEnfileirar(dados, queueKey, sheetUrl) {
   await renderBannerPendentes();
 }
 
-// ── Ao carregar a página: mostra banner se houver pendentes ──
-document.addEventListener('DOMContentLoaded', () => {
-  renderBannerPendentes();
+// ── Inicialização ────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  // Indicador de conexão
+  atualizarIndicadorConexao();
+
+  // Verifica pendentes ao abrir (cobre iPhone com app fechado)
+  const total = await contarPendentes();
+  if (total > 0) {
+    await renderBannerPendentes();
+    // Se já tiver internet ao abrir, tenta reenviar automaticamente (iPhone)
+    if (navigator.onLine) {
+      const temBgSync = 'serviceWorker' in navigator && 'SyncManager' in window;
+      if (!temBgSync) {
+        // iOS: reenvio automático silencioso ao abrir
+        setTimeout(async () => {
+          await reenviarPendentes();
+        }, 2000);
+      }
+    }
+  }
 });
 
-// ── Mensagem do SW (Android Background Sync) ──
+// ── Eventos de conexão ───────────────────────────────────────────────────────
+window.addEventListener('online', async () => {
+  atualizarIndicadorConexao();
+  const temBgSync = 'serviceWorker' in navigator && 'SyncManager' in window;
+  if (temBgSync) return; // Android: SW cuida do reenvio
+
+  // iOS: reenvio automático ao reconectar
+  const total = await contarPendentes();
+  if (total > 0) {
+    showToast('🔄 Internet restaurada! Reenviando ' + total + ' registro(s)...', 3000);
+    setTimeout(reenviarPendentes, 1500);
+  }
+});
+
+window.addEventListener('offline', () => {
+  atualizarIndicadorConexao();
+});
+
+// ── Mensagem do SW (Android Background Sync) ─────────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', async e => {
     if (e.data && e.data.type === 'SYNC_RESULT') {
@@ -216,15 +297,3 @@ if ('serviceWorker' in navigator) {
     }
   });
 }
-
-// ── Ao voltar online: reenvio apenas se Background Sync NÃO estiver disponível (iOS) ──
-window.addEventListener('online', async () => {
-  const temBackgroundSync = 'serviceWorker' in navigator && 'SyncManager' in window;
-  if (temBackgroundSync) return; // Android/Chrome: o SW cuida do reenvio, evita duplicar
-
-  const total = await contarPendentes();
-  if (total > 0) {
-    showToast('🔄 Internet restaurada! Reenviando ' + total + ' registro(s)...', 3000);
-    setTimeout(reenviarPendentes, 1500);
-  }
-});

@@ -7,6 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="CIPGd Viaturas">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.json">
   <title>CIPGd-FSA — Inspeção de Viaturas</title>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -19,7 +20,10 @@
       --accent2:#f5c842;
       --text:   #e2e8f0;
       --muted:  #6b7a99;
-    }
+    
+    --card-bg: #161d30;
+    --topbar: rgba(10,15,30,0.92);
+  }
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
@@ -261,6 +265,7 @@
     @keyframes fadeDown { from{opacity:0;transform:translateY(-18px)} to{opacity:1;transform:translateY(0)} }
     @keyframes fadeUp   { from{opacity:0;transform:translateY(14px)}  to{opacity:1;transform:translateY(0)} }
   </style>
+  <script src="theme.js"></script>
 </head>
 <body>
 <div class="wrap">
