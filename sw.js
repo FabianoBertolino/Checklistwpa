@@ -1,5 +1,5 @@
 // ── SERVICE WORKER — CIPGd-FSA v1.4 ─────────────────────────────────────────
-const CACHE = 'cipgd-v1.7';
+const CACHE = 'cipgd-v1.8';
 
 const ASSETS = [
   './',
