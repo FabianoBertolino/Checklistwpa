@@ -43,7 +43,7 @@
       content: '';
       position: fixed; inset: 0;
       background-image:
-        linear-gradient(rgba(232,184,52,0.04) 1px, transparent 1px),
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
         linear-gradient(90deg, rgba(232,184,52,0.04) 1px, transparent 1px);
       background-size: 40px 40px;
       pointer-events: none; z-index: 0;
@@ -52,7 +52,7 @@
     /* ── TOP BAR ── */
     .topbar {
       position: sticky; top: 0; z-index: 100;
-      background: rgba(10,15,30,.92);
+      background: var(--topbar-bg);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
@@ -64,7 +64,7 @@
     .btn-back {
       display: flex; align-items: center; justify-content: center;
       width: 36px; height: 36px;
-      background: rgba(232,184,52,.1);
+      background: var(--btn-back-bg);
       border: 1px solid rgba(232,184,52,.2);
       border-radius: 9px;
       color: var(--accent);
@@ -89,7 +89,7 @@
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 1.1rem; font-weight: 800;
       text-transform: uppercase; letter-spacing: .04em;
-      color: #fff; line-height: 1.1;
+      color: var(--topbar-name); line-height: 1.1;
     }
 
     /* ── CONTAINER ── */
@@ -118,7 +118,7 @@
       display: flex; align-items: center; gap: .6rem;
       padding: .85rem 1.1rem;
       border-bottom: 1px solid var(--border);
-      background: rgba(232,184,52,.06);
+      background: var(--sec-header);
     }
     .sec-icon {
       font-size: .95rem; width: 28px; height: 28px;
@@ -200,7 +200,7 @@
     .chip {
       display: inline-block;
       padding: .2rem .6rem;
-      background: rgba(232,184,52,.1);
+      background: var(--chip-bg);
       border: 1px solid rgba(232,184,52,.28);
       border-radius: 20px;
       font-size: .71rem; color: var(--accent);
