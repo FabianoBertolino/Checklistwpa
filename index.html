@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="description" content="Sistema Digital de Inspeção de Viaturas da CIPGd-FSA — Android e iPhone">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#e8b834">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -10,6 +11,8 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.json">
   <title>CIPGd-FSA — Inspeção de Viaturas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -199,6 +202,22 @@
     }
     .card:hover .card-arrow { opacity: 1; transform: translateX(4px); }
 
+    /* ── CARD DESCARGA ── */
+    .card-descarga {
+      border-color: rgba(34,197,94,0.35) !important;
+      background: linear-gradient(135deg, rgba(34,197,94,0.08), var(--panel)) !important;
+    }
+    .card-descarga:hover {
+      border-color: rgba(34,197,94,0.65) !important;
+      box-shadow: 0 0 28px rgba(34,197,94,0.15), 0 4px 18px rgba(0,0,0,.3) !important;
+    }
+    .card-descarga .card-tag { color: #22c55e !important; }
+    .card-descarga .card-icon {
+      background: linear-gradient(135deg, rgba(34,197,94,0.20), rgba(34,197,94,0.05)) !important;
+      border-color: rgba(34,197,94,0.3) !important;
+    }
+    .card-descarga .card-arrow { color: #22c55e !important; }
+
     /* ── BANNER INSTALL ── */
     #install-banner {
       display: none;
@@ -299,6 +318,16 @@
     </a>
   </div>
 
+  <!-- Seção de Descarga (aparece quando há carga ativa) -->
+  <div id="descarga-section" style="display:none; margin-top:1.5rem;">
+    <div class="divider" style="margin-bottom:1rem;">
+      <div class="div-line"></div>
+      <div class="div-txt">Descarga Pendente</div>
+      <div class="div-line"></div>
+    </div>
+    <div class="cards" id="descarga-cards"></div>
+  </div>
+
   <!-- Banner instalação Android -->
   <div id="install-banner">
     <p>📲 <strong>Instale o app</strong> na tela inicial para acesso rápido, mesmo sem internet.</p>
@@ -311,11 +340,21 @@
   </div>
 
   <div class="footer">
-    <span>▪</span>&nbsp; Sistema de Inspeção de Viaturas &nbsp;<span>▪</span>
+    <span>▪</span>&nbsp; Sistema de Inspeção de Viaturas <span id="app-version"></span>&nbsp;<span>▪</span>
   </div>
 
 </div>
 
+<script src="config.js"></script>
+<script>
+(function() {
+  var el = document.getElementById('app-version');
+  if (el && typeof CIPGD_CONFIG !== 'undefined' && CIPGD_CONFIG.VERSAO) {
+    el.textContent = CIPGD_CONFIG.VERSAO;
+  }
+})();
+</script>
+<script src="offline-queue.js"></script>
 <script>
   // Registra Service Worker
   if ('serviceWorker' in navigator) {
@@ -351,15 +390,70 @@
   }
 </script>
 
+<script src="config.js"></script>
+<script>
+(function() {
+  var el = document.getElementById('app-version');
+  if (el && typeof CIPGD_CONFIG !== 'undefined' && CIPGD_CONFIG.VERSAO) {
+    el.textContent = CIPGD_CONFIG.VERSAO;
+  }
+})();
+</script>
 <script src="offline-queue.js"></script>
 <script>
-  // Na tela inicial: verifica pendentes ao abrir
-  document.addEventListener('DOMContentLoaded', async () => {
-    const total = await contarPendentes();
+  // ── VERIFICA CARGAS ATIVAS E PENDENTES ──────────────────────────────────
+  document.addEventListener('DOMContentLoaded', async function() {
+    var section = document.getElementById('descarga-section');
+    var cardsEl = document.getElementById('descarga-cards');
+    var temDescarga = false;
+
+    // Verifica carga 4 rodas
+    try {
+      var c4 = JSON.parse(localStorage.getItem('cipgd_carga_4rodas'));
+      if (c4 && c4.Prefixo) {
+        temDescarga = true;
+        var card = document.createElement('a');
+        card.className = 'card card-descarga';
+        card.href = 'descarga-4rodas.html';
+        card.innerHTML =
+          '<div class="card-icon">🔑</div>' +
+          '<div class="card-body">' +
+            '<div class="card-tag">Descarga · 4 Rodas</div>' +
+            '<div class="card-title">' + c4.Prefixo + '</div>' +
+            '<div class="card-desc">Mot: ' + (c4.Graduacao||'') + ' ' + (c4.Nome||'') + ' &middot; Km ini: ' + (c4.Km_inicial||'') + '</div>' +
+          '</div>' +
+          '<div class="card-arrow" style="color:#22c55e">›</div>';
+        cardsEl.appendChild(card);
+      }
+    } catch(e) {}
+
+    // Verifica carga 2 rodas
+    try {
+      var c2 = JSON.parse(localStorage.getItem('cipgd_carga_2rodas'));
+      if (c2 && c2.Prefixo) {
+        temDescarga = true;
+        var card2 = document.createElement('a');
+        card2.className = 'card card-descarga';
+        card2.href = 'descarga-2rodas.html';
+        card2.innerHTML =
+          '<div class="card-icon">🔑</div>' +
+          '<div class="card-body">' +
+            '<div class="card-tag">Descarga · 2 Rodas</div>' +
+            '<div class="card-title">' + c2.Prefixo + '</div>' +
+            '<div class="card-desc">Mot: ' + (c2.Graduacao||'') + ' ' + (c2.Nome||'') + ' &middot; Km ini: ' + (c2.KmInicial||'') + '</div>' +
+          '</div>' +
+          '<div class="card-arrow" style="color:#22c55e">›</div>';
+        cardsEl.appendChild(card2);
+      }
+    } catch(e) {}
+
+    if (temDescarga) section.style.display = 'block';
+
+    // Banner de pendentes (manter funcionalidade existente)
+    var total = await contarPendentes();
     if (total > 0) {
-      // Insere banner abaixo dos cards
-      const wrap = document.querySelector('.cards');
-      const banner = document.createElement('div');
+      var wrap = document.querySelector('.cards');
+      var banner = document.createElement('div');
       banner.style.cssText = [
         'margin-top:1rem',
         'background:rgba(239,68,68,0.1)',

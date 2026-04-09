@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="description" content="Checklist de inspeção de viaturas de 4 rodas — CIPGd-FSA">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#e8b834">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -9,6 +10,8 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.json">
   <title>Checklist 4 Rodas — CIPGd-FSA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -234,7 +237,7 @@
 
 <!-- TOP BAR -->
 <div class="topbar">
-  <a class="btn-back" href="index.html">&#8249;</a>
+  <a class="btn-back" href="javascript:history.back()">&#8249;</a>
   <div class="topbar-title">
     <div class="topbar-badge">4 Rodas</div>
     <div class="topbar-name">Viatura Automotiva</div>
@@ -433,7 +436,7 @@
   </div>
 
   <div class="submit-wrap">
-    <button id="whatsBtn" type="submit" class="btn-submit">
+    <button id="whatsBtn" type="submit" class="btn-submit" aria-label="Enviar via WhatsApp">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
       Enviar via WhatsApp
     </button>
@@ -444,6 +447,25 @@
 
 <script>
   document.getElementById('DataHora').value = new Date().toLocaleString('pt-BR');
+
+
+  // ── PROTEÇÃO ANTI-DUPLICATA ─────────────────────────────────────────────
+  // Gera chave única para este envio. Se já enviado nos últimos 60s, bloqueia.
+  function jaEnviado(chave) {
+    try {
+      var reg = JSON.parse(localStorage.getItem('cipgd_enviados') || '{}');
+      var agora = Date.now();
+      // Limpar entradas com mais de 60 segundos
+      Object.keys(reg).forEach(function(k) { if (agora - reg[k] > 60000) delete reg[k]; });
+      if (reg[chave]) {
+        localStorage.setItem('cipgd_enviados', JSON.stringify(reg));
+        return true; // já enviado
+      }
+      reg[chave] = agora;
+      localStorage.setItem('cipgd_enviados', JSON.stringify(reg));
+      return false;
+    } catch(e) { return false; }
+  }
 
   var isIphone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   if (isIphone) document.getElementById('whatsBtn').childNodes[1].textContent = ' Enviar via WhatsApp (iPhone)';
@@ -563,14 +585,25 @@
       return;
     }
 
-    // Salva localStorage
+    // Salva localStorage (autopreenchimento)
     var s = loadStore();
     ['Nome','Cadastro','Comandante','Observacoes'].forEach(function(k) { addToList(s, k, dados[k]); });
     s.Graduacao = dados.Graduacao; s.Prefixo = dados.Prefixo;
     saveStore(s);
 
-    // Envia para planilha com fila offline automática
-    enviarOuEnfileirar(dados, 'cipgd_4rodas_queue', 'https://script.google.com/macros/s/AKfycbw5AkFln4F18me-S32jrq6AJVamCzoz_JVDvQwYJFbkIRjgmRDWrLkUcOea0bQjOjdv/exec');
+    // Salva carga ativa para descarga posterior
+    try { localStorage.setItem('cipgd_carga_4rodas', JSON.stringify(dados)); } catch(e) {}
+
+    // Envia para planilha
+
+    var _chaveEnvio = 'carga4R_' + (dados.Prefixo||'') + '_' + (dados.Km_inicial||'') + '_' + (dados.DataHora||'');
+    if (jaEnviado(_chaveEnvio)) {
+      showToast('⚠️ Este checklist já foi enviado. Evitando duplicata.');
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+      return;
+    }
+
+    enviarOuEnfileirar(dados, 'cipgd_4rodas_queue', CIPGD_CONFIG.URL_4RODAS);
 
     // Monta mensagem WhatsApp
     function st(v) {
@@ -610,11 +643,15 @@
     }
     L.push(''); L.push(SEP);
 
-    var url = 'https://wa.me/?text=' + encodeURIComponent(L.join('\n'));
-    if (isIphone) window.location.href = url;
-    else window.open(url, '_blank');
+    var waText = encodeURIComponent(L.join('\n'));
+    var url = isIphone
+      ? 'whatsapp://send?text=' + waText
+      : 'https://api.whatsapp.com/send?text=' + waText;
+    if (isIphone) { window.location.href = url; }
+    else { window.open(url, '_blank'); setTimeout(function(){ window.location.replace('./index.html'); }, 1200); }
   });
 </script>
-<script src="offline-queue.js"></script>
+<script src="config.js"></script>
+  <script src="offline-queue.js"></script>
 </body>
 </html>

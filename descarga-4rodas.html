@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="Registro de descarga de viatura de 4 rodas — CIPGd-FSA">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#e8b834">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <title>Descarga 4 Rodas — CIPGd-FSA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent:  #e8b834;
+      --accent2: #f5c842;
+      --green:   #22c55e;
+      --red:     #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--navy);
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100dvh;
+      overscroll-behavior: none;
+    }
+    body { padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 1rem); }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,184,52,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--topbar-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: .75rem;
+      padding: .75rem 1rem;
+      padding-top: calc(.75rem + env(safe-area-inset-top, 0px));
+    }
+    .btn-back {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px;
+      background: var(--btn-back-bg);
+      border: 1px solid rgba(232,184,52,.2);
+      border-radius: 9px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 1.1rem;
+      transition: background .2s;
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+    }
+    .btn-back:hover { background: rgba(232,184,52,.2); }
+    .topbar-title { flex: 1; }
+    .topbar-badge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .62rem; font-weight: 700;
+      letter-spacing: .15em; text-transform: uppercase;
+      color: var(--green);
+    }
+    .topbar-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.1rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .04em;
+      color: var(--topbar-name); line-height: 1.1;
+    }
+
+    /* ── CONTAINER ── */
+    .container {
+      max-width: 640px; margin: 0 auto;
+      padding: 1.25rem 1rem 2rem;
+      position: relative; z-index: 1;
+    }
+
+    /* ── BANNER DESCARGA ── */
+    .banner-descarga {
+      background: linear-gradient(135deg, rgba(34,197,94,.12), rgba(34,197,94,.04));
+      border: 1px solid rgba(34,197,94,.35);
+      border-radius: 12px;
+      padding: .85rem 1.1rem;
+      display: flex; align-items: center; gap: .75rem;
+      margin-bottom: 1.25rem;
+      animation: fadeUp .35s ease both;
+    }
+    .banner-descarga-icon { font-size: 1.6rem; flex-shrink: 0; }
+    .banner-descarga-text { flex: 1; }
+    .banner-descarga-text strong {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .06em;
+      color: var(--green); display: block;
+    }
+    .banner-descarga-text span {
+      font-size: .75rem; color: var(--muted); line-height: 1.4;
+    }
+
+    /* ── SECTIONS ── */
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 1.1rem;
+      overflow: hidden;
+      animation: fadeUp .35s ease both;
+    }
+    .section:nth-child(1) { animation-delay: .05s; }
+    .section:nth-child(2) { animation-delay: .10s; }
+    .section:nth-child(3) { animation-delay: .15s; }
+    .section:nth-child(4) { animation-delay: .20s; }
+    .section:nth-child(5) { animation-delay: .25s; }
+    .section:nth-child(6) { animation-delay: .30s; }
+
+    .sec-header {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--sec-header);
+    }
+    .sec-icon {
+      font-size: .95rem; width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(232,184,52,.15); border-radius: 6px;
+    }
+    .sec-icon.green { background: rgba(34,197,94,.15); }
+    .sec-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .78rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--accent);
+    }
+    .sec-title.green { color: var(--green); }
+    .sec-badge {
+      margin-left: auto;
+      font-size: .6rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted);
+      background: rgba(107,122,153,.12);
+      border: 1px solid rgba(107,122,153,.2);
+      border-radius: 20px;
+      padding: .15rem .55rem;
+    }
+
+    .sec-body {
+      padding: 1.1rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: .9rem;
+    }
+    .sec-body.single { grid-template-columns: 1fr; }
+
+    .field { display: flex; flex-direction: column; gap: .3rem; }
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: .69rem; font-weight: 600;
+      letter-spacing: .08em; text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* Campos somente leitura da carga */
+    .val-readonly {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .6rem .8rem;
+      font-family: 'Barlow', sans-serif;
+      font-size: .9rem;
+      color: var(--muted);
+      min-height: 2.3rem;
+      display: flex; align-items: center;
+      cursor: not-allowed;
+      opacity: .82;
+    }
+    .val-readonly.accent { color: var(--accent); font-size: .82rem; }
+
+    /* Badge de status dos itens */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .45rem .75rem;
+      border-radius: 8px;
+      font-family: 'Barlow', sans-serif;
+      font-size: .85rem; font-weight: 600;
+      min-height: 2.3rem;
+    }
+    .status-badge.ok  { background: rgba(34,197,94,.1);  border: 1px solid rgba(34,197,94,.3);  color: var(--green); }
+    .status-badge.bad { background: rgba(239,68,68,.1);  border: 1px solid rgba(239,68,68,.3);  color: var(--red);   }
+
+    /* Check grid */
+    .check-grid {
+      padding: 1.1rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: .8rem;
+    }
+    .check-item { display: flex; flex-direction: column; gap: .3rem; }
+
+    /* ── CAMPOS DE DESCARGA (editáveis) ── */
+    input, select, textarea {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      font-size: .92rem;
+      padding: .6rem .8rem;
+      transition: border-color .2s, box-shadow .2s;
+      -webkit-appearance: none; appearance: none;
+      width: 100%;
+    }
+    input[readonly] { color: var(--accent); font-size: .82rem; cursor: not-allowed; }
+    input:not([readonly]):focus, select:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.11);
+    }
+    input.km-input {
+      border-color: rgba(34,197,94,.4);
+      font-size: 1.15rem; font-weight: 700;
+      letter-spacing: .05em;
+      text-align: center;
+    }
+    input.km-input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+    }
+    input.error { border-color: var(--red) !important; box-shadow: 0 0 0 3px rgba(239,68,68,.1) !important; }
+    .error-msg { font-size: .71rem; color: var(--red); margin-top: .2rem; display: none; }
+    .error-msg.show { display: block; }
+
+    /* ── OBS CARGA ── */
+    .obs-carga {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .6rem .8rem;
+      font-size: .88rem;
+      color: var(--muted);
+      line-height: 1.5;
+      min-height: 2.3rem;
+      opacity: .82;
+      font-style: italic;
+    }
+
+    /* ── SUBMIT ── */
+    .submit-wrap { margin-top: 1.25rem; animation: fadeUp .4s .3s ease both; }
+    .btn-submit {
+      width: 100%;
+      background: var(--green); color: #fff;
+      border: none; border-radius: 12px;
+      padding: 1rem 1.5rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.05rem; font-weight: 800;
+      letter-spacing: .1em; text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s, transform .1s, box-shadow .2s;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-submit:hover { background: #16a34a; box-shadow: 0 0 22px rgba(34,197,94,.28); }
+    .btn-submit:active { transform: scale(.98); }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+    @media (max-width: 480px) {
+      .sec-body, .check-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script src="theme.js"></script>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <a class="btn-back" href="javascript:history.back()">&#8249;</a>
+  <div class="topbar-title">
+    <div class="topbar-badge">Descarga · 4 Rodas</div>
+    <div class="topbar-name">Viatura Automotiva</div>
+  </div>
+  <span style="font-size:1.5rem">🔑</span>
+</div>
+
+<div class="container">
+
+  <!-- Banner informativo -->
+  <div class="banner-descarga">
+    <div class="banner-descarga-icon">🔑</div>
+    <div class="banner-descarga-text">
+      <strong>Descarga da Viatura</strong>
+      <span>Dados da carga carregados automaticamente. Informe apenas o Km Final e envie.</span>
+    </div>
+  </div>
+
+  <!-- IDENTIFICAÇÃO (somente leitura) -->
+  <div class="section">
+    <div class="sec-header">
+      <div class="sec-icon">👤</div>
+      <span class="sec-title">Identificação</span>
+      <span class="sec-badge">da carga</span>
+    </div>
+    <div class="sec-body">
+      <div class="field full">
+        <label>Data e Hora da Carga</label>
+        <div class="val-readonly accent" id="v_DataHora"></div>
+      </div>
+      <div class="field">
+        <label>Nome</label>
+        <div class="val-readonly" id="v_Nome"></div>
+      </div>
+      <div class="field">
+        <label>Graduação</label>
+        <div class="val-readonly" id="v_Graduacao"></div>
+      </div>
+      <div class="field">
+        <label>Cadastro</label>
+        <div class="val-readonly" id="v_Cadastro"></div>
+      </div>
+      <div class="field">
+        <label>Comandante</label>
+        <div class="val-readonly" id="v_Comandante"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIATURA (somente leitura) -->
+  <div class="section">
+    <div class="sec-header">
+      <div class="sec-icon">🚓</div>
+      <span class="sec-title">Viatura</span>
+      <span class="sec-badge">da carga</span>
+    </div>
+    <div class="sec-body">
+      <div class="field">
+        <label>Prefixo</label>
+        <div class="val-readonly" id="v_Prefixo"></div>
+      </div>
+      <div class="field">
+        <label>Km Inicial</label>
+        <div class="val-readonly" id="v_KmInicial"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLUIDOS (somente leitura) -->
+  <div class="section">
+    <div class="sec-header">
+      <div class="sec-icon">🛢️</div>
+      <span class="sec-title">Níveis e Fluidos</span>
+      <span class="sec-badge">da carga</span>
+    </div>
+    <div class="check-grid">
+      <div class="check-item">
+        <label>Nível do Óleo</label>
+        <div class="status-badge" id="v_Oleo"></div>
+      </div>
+      <div class="check-item">
+        <label>Nível da Água</label>
+        <div class="status-badge" id="v_Agua"></div>
+      </div>
+      <div class="check-item">
+        <label>Combustível</label>
+        <div class="status-badge" id="v_Combustivel"></div>
+      </div>
+      <div class="check-item">
+        <label>Fluido de Freio</label>
+        <div class="status-badge" id="v_Freio"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESTRUTURA (somente leitura) -->
+  <div class="section">
+    <div class="sec-header">
+      <div class="sec-icon">🔧</div>
+      <span class="sec-title">Estrutura e Equipamentos</span>
+      <span class="sec-badge">da carga</span>
+    </div>
+    <div class="check-grid">
+      <div class="check-item">
+        <label>Chaparia</label>
+        <div class="status-badge" id="v_Chaparia"></div>
+      </div>
+      <div class="check-item">
+        <label>Plotagem</label>
+        <div class="status-badge" id="v_Plotagem"></div>
+      </div>
+      <div class="check-item">
+        <label>Faróis e Setas</label>
+        <div class="status-badge" id="v_Farois"></div>
+      </div>
+      <div class="check-item">
+        <label>Giroflex</label>
+        <div class="status-badge" id="v_Giroflex"></div>
+      </div>
+      <div class="check-item">
+        <label>Estofados</label>
+        <div class="status-badge" id="v_Estofados"></div>
+      </div>
+      <div class="check-item">
+        <label>Chave e Macaco</label>
+        <div class="status-badge" id="v_Ferramentas"></div>
+      </div>
+      <div class="check-item">
+        <label>Pneus / Estepe</label>
+        <div class="status-badge" id="v_Pneus"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OBSERVAÇÕES DA CARGA (somente leitura, só aparece se houver) -->
+  <div class="section" id="sec-obs-carga" style="display:none">
+    <div class="sec-header">
+      <div class="sec-icon">📝</div>
+      <span class="sec-title">Observações da Carga</span>
+      <span class="sec-badge">somente leitura</span>
+    </div>
+    <div class="sec-body single">
+      <div class="field full">
+        <div class="obs-carga" id="v_Observacoes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DESCARGA: campos editáveis ── -->
+  <div class="section" style="border-color: rgba(34,197,94,.35);">
+    <div class="sec-header" style="background: rgba(34,197,94,.06); border-color: rgba(34,197,94,.2);">
+      <div class="sec-icon green">🔑</div>
+      <span class="sec-title green">Descarga</span>
+    </div>
+    <div class="sec-body">
+      <div class="field full">
+        <label>Data e Hora da Descarga</label>
+        <input type="text" id="DataHoraDescarga" readonly>
+      </div>
+      <div class="field full">
+        <label>Km Final *</label>
+        <input type="number" id="Km_final" class="km-input" placeholder="00000" inputmode="numeric" min="1" max="999999" required autocomplete="off">
+        <span class="error-msg" id="err_Km_final">Informe o Km final (maior que zero)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTÃO ENVIAR -->
+  <div class="submit-wrap">
+    <button type="button" class="btn-submit" id="btn-enviar" aria-label="Confirmar descarga e enviar via WhatsApp">
+      <span>📲</span> Enviar Descarga via WhatsApp
+    </button>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+
+  // ── PROTEÇÃO ANTI-DUPLICATA ─────────────────────────────────────────────
+  function jaEnviado(chave) {
+    try {
+      var reg = JSON.parse(localStorage.getItem('cipgd_enviados') || '{}');
+      var agora = Date.now();
+      Object.keys(reg).forEach(function(k) { if (agora - reg[k] > 60000) delete reg[k]; });
+      if (reg[chave]) { localStorage.setItem('cipgd_enviados', JSON.stringify(reg)); return true; }
+      reg[chave] = agora;
+      localStorage.setItem('cipgd_enviados', JSON.stringify(reg));
+      return false;
+    } catch(e) { return false; }
+  }
+
+  var isIphone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  // ── CARREGA DADOS DA CARGA ───────────────────────────────────────────────
+  var carga = null;
+  try { carga = JSON.parse(localStorage.getItem('cipgd_carga_4rodas')); } catch(e) {}
+
+  if (!carga || !carga.Prefixo) {
+    // Sem carga ativa — redireciona
+    alert('Nenhuma carga ativa encontrada para 4 Rodas. Faça o checklist primeiro.');
+    history.back();
+  }
+
+  // ── HELPER: status badge ─────────────────────────────────────────────────
+  var OK_VALS = ['OK','Cheio','3/4','2/4'];
+  function setBadge(id, val) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var isOk = OK_VALS.indexOf(val) >= 0;
+    el.className = 'status-badge ' + (isOk ? 'ok' : 'bad');
+    el.textContent = (isOk ? '✔ ' : '✘ ') + (val || '—');
+  }
+
+  function setVal(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val || '—';
+  }
+
+  // ── PREENCHE CAMPOS SOMENTE LEITURA ─────────────────────────────────────
+  if (carga) {
+    setVal('v_DataHora',    carga.DataHora);
+    setVal('v_Nome',        carga.Nome);
+    setVal('v_Graduacao',   carga.Graduacao);
+    setVal('v_Cadastro',    carga.Cadastro);
+    setVal('v_Comandante',  carga.Comandante);
+    setVal('v_Prefixo',     carga.Prefixo);
+    setVal('v_KmInicial',   carga.Km_inicial);
+
+    setBadge('v_Oleo',        carga.Oleo);
+    setBadge('v_Agua',        carga.Agua);
+    setBadge('v_Combustivel', carga.Combustivel);
+    setBadge('v_Freio',       carga.Freio);
+    setBadge('v_Chaparia',    carga.Chaparia);
+    setBadge('v_Plotagem',    carga.Plotagem);
+    setBadge('v_Farois',      carga.Farois);
+    setBadge('v_Giroflex',    carga.Giroflex);
+    setBadge('v_Estofados',   carga.Estofados);
+    setBadge('v_Ferramentas', carga.Ferramentas);
+    setBadge('v_Pneus',       carga.Pneus);
+
+    if (carga.Observacoes && carga.Observacoes.trim()) {
+      document.getElementById('sec-obs-carga').style.display = 'block';
+      setVal('v_Observacoes', carga.Observacoes.trim());
+    }
+  }
+
+  // ── DATA E HORA DA DESCARGA ──────────────────────────────────────────────
+  document.getElementById('DataHoraDescarga').value = new Date().toLocaleString('pt-BR');
+
+  // ── VALIDAÇÃO KM FINAL ───────────────────────────────────────────────────
+  var kmInput = document.getElementById('Km_final');
+  var kmErr   = document.getElementById('err_Km_final');
+
+  kmInput.addEventListener('input', function() {
+    kmInput.classList.remove('error');
+    kmErr.classList.remove('show');
+    // Só aceita números
+    this.value = this.value.replace(/[^0-9]/g, '');
+  });
+
+  function validarKm() {
+    var km = parseInt(kmInput.value);
+    var kmIni = parseInt(carga ? carga.Km_inicial : 0);
+    if (!kmInput.value || isNaN(km) || km <= 0) {
+      kmInput.classList.add('error');
+      kmErr.textContent = 'Informe o Km final (maior que zero)';
+      kmErr.classList.add('show');
+      return false;
+    }
+    if (km > 999999) {
+      kmInput.classList.add('error');
+      kmErr.textContent = 'Km parece inválido. Verifique o valor.';
+      kmErr.classList.add('show');
+      return false;
+    }
+    if (kmIni > 0 && km < kmIni) {
+      kmInput.classList.add('error');
+      kmErr.textContent = 'Km final (' + km + ') não pode ser menor que o Km inicial (' + kmIni + ')';
+      kmErr.classList.add('show');
+      return false;
+    }
+    return true;
+  }
+
+  // ── ENVIO ────────────────────────────────────────────────────────────────
+  document.getElementById('btn-enviar').addEventListener('click', function() {
+    if (!validarKm()) {
+      kmInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    var dataDesc = document.getElementById('DataHoraDescarga').value;
+    var kmFinal  = kmInput.value;
+
+    // Monta payload para planilha
+    // Envia todos os dados da carga + campos da descarga
+    // O script vai buscar a linha pelo Cadastro+KmInicial+Prefixo e reescrever tudo
+    var payload = Object.assign({}, carga, {
+      Tipo:             'DESCARGA',
+      DataHoraDescarga: dataDesc,
+      Km_final:         kmFinal
+    });
+
+
+    var _chaveEnvio = 'desc4R_' + (carga.Prefixo||'') + '_' + (carga.Km_inicial||'') + '_' + (carga.DataHora||'');
+    if (jaEnviado(_chaveEnvio)) {
+      showToast('⚠️ Esta descarga já foi enviada. Evitando duplicata.');
+      return;
+    }
+
+    enviarOuEnfileirar(payload, 'cipgd_4rodas_desc_queue', CIPGD_CONFIG.URL_4RODAS);
+
+    // Monta mensagem WhatsApp — modelo simplificado conforme solicitado
+    var SEP = '━━━━━━━━━━━━━━━━━━━━';
+    var kmRod = parseInt(kmFinal) - parseInt(carga.Km_inicial || 0);
+    var L = [];
+    L.push(SEP);
+    L.push('🔑 *DESCARGA 4 RODAS*');
+    L.push('       *CIPGd-FSA*');
+    L.push(SEP);
+    L.push('');
+    L.push('📅 Descarga: ' + dataDesc);
+    L.push('👤 Mot: ' + (carga.Graduacao||'') + ' *' + (carga.Nome||'').trim() + '*' + (carga.Cadastro ? '  Mat: *' + (carga.Cadastro||'').trim() + '*' : ''));
+    L.push('📍 Viatura: *' + carga.Prefixo + '*');
+    L.push('');
+    L.push('📊 Km Final:    *' + kmFinal + '*');
+    L.push('🛣️ Km Rodados:  *' + (kmRod >= 0 ? kmRod : '—') + ' km*');
+    L.push(SEP);
+
+    // URL compatível com Android e iPhone
+    var waText = encodeURIComponent(L.join('\n'));
+    var url = isIphone
+      ? 'whatsapp://send?text=' + waText
+      : 'https://api.whatsapp.com/send?text=' + waText;
+
+    // Remove carga ativa ANTES de abrir WhatsApp
+    try { localStorage.removeItem('cipgd_carga_4rodas'); } catch(e) {}
+
+    if (isIphone) {
+      window.location.href = url;
+    } else {
+      window.open(url, '_blank');
+      setTimeout(function() { window.location.replace('./index.html'); }, 1200);
+    }
+  });
+</script>
+<script src="config.js"></script>
+  <script src="offline-queue.js"></script>
+</body>
+</html>
